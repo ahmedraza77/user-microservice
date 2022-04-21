@@ -1,6 +1,8 @@
 package com.appsdeveloper.app.ws.service.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 import org.springframework.beans.BeanUtils;
@@ -15,8 +17,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.appsdeveloper.app.ws.exception.ErrorMessage;
+import com.appsdeveloper.app.ws.io.entity.RoleEntity;
 import com.appsdeveloper.app.ws.io.entity.UserEntity;
+import com.appsdeveloper.app.ws.io.repository.RoleRepository;
 import com.appsdeveloper.app.ws.io.repository.UserRepository;
+import com.appsdeveloper.app.ws.security.UserPrincipal;
 import com.appsdeveloper.app.ws.service.UserService;
 import com.appsdeveloper.app.ws.shared.dto.UserDto;
 import com.appsdeveloper.app.ws.shared.utils.Utils;
@@ -30,6 +35,9 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private UserRepository userRepo;
+	
+	@Autowired
+	RoleRepository roleRepository;
 
 	@Autowired
 	private Utils utils;
@@ -55,7 +63,19 @@ public class UserServiceImpl implements UserService {
 
 		String userId = utils.generateUserId(30);
 		userEntity.setUserId(userId);
-		userEntity.setEncryptedPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+		userEntity.setEncryptedPassword(bCryptPasswordEncoder.encode(user.getPassword()));	
+
+		// Set roles 
+		Collection<RoleEntity> roleEntities = new HashSet<>();
+		for(String role: user.getRoles()) {
+			RoleEntity roleEntity = roleRepository.findByName(role);
+			if(roleEntity !=null) {
+				roleEntities.add(roleEntity);
+			}
+		}
+		
+		userEntity.setRoles(roleEntities);
+		
 		UserEntity savedUser = userRepo.save(userEntity);
 
 		UserDto returnValue = modelMapper.map(savedUser, UserDto.class);
@@ -119,7 +139,8 @@ public class UserServiceImpl implements UserService {
 		if(userEntity == null) {
 			throw new UsernameNotFoundException(ErrorMessage.NO_RECORD_FOUND.getErrorMessages() + email);
 		}
-		return new User(userEntity.getEmail(), userEntity.getEncryptedPassword(), new ArrayList<>());
+		return new UserPrincipal(userEntity);
+		//return new User(userEntity.getEmail(), userEntity.getEncryptedPassword(), new ArrayList<>());
 	}
 
 	@Override

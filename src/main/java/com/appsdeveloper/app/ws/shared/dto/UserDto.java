@@ -1,6 +1,7 @@
 package com.appsdeveloper.app.ws.shared.dto;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 
 public class UserDto implements Serializable {
@@ -16,6 +17,8 @@ public class UserDto implements Serializable {
 	private String emailVerificationToken;
 	private Boolean emailVerificationStatus = false;
 	private List<AddressDto> addresses;
+    private Collection<String> roles;
+
 
 	public List<AddressDto> getAddresses() {
 		return addresses;
@@ -95,5 +98,12 @@ public class UserDto implements Serializable {
 
 	public void setEmailVerificationStatus(Boolean emailVerificationStatus) {
 		this.emailVerificationStatus = emailVerificationStatus;
+	}
+	
+	public Collection<String> getRoles() {
+		return roles;
+	}
+	public void setRoles(Collection<String> roles) {
+		this.roles = roles;
 	}
 }
